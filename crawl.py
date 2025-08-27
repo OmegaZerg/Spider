@@ -53,3 +53,14 @@ def get_images_from_html(html: str, base_url: str) -> list[str]:
         else:
             images.append( base_url + image.get('src'))
     return images
+
+def extract_page_data(html: str, page_url: str) -> dict[str: str]:
+    if html == "" or page_url == "":
+        raise ValueError("The extract page data function must not be called with an empty string!")
+    page_data = {}
+    page_data["url"] = page_url
+    page_data["h1"] = get_h1_from_html(html)
+    page_data["first_paragraph"] = get_first_paragraph_from_html(html)
+    page_data["outgoing_links"] = get_urls_from_html(html, page_url)
+    page_data["image_urls"] = get_images_from_html(html, page_url)
+    return page_data
