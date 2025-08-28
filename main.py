@@ -1,4 +1,5 @@
 import sys
+from crawl import get_html
 
 def main():
     print("Hello from spider!")
@@ -12,6 +13,8 @@ def main():
         print("Website provided must start with either 'https://' or 'http://'. Please provide the full link.")
         sys.exit(1)
     print(f"Starting crawl of: {sys.argv[1]}")
+
+    print(get_html(sys.argv[1]))
 
 if __name__ == "__main__":
     main()

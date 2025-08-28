@@ -1,5 +1,8 @@
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
+import requests
+from classes import StatusError, HeaderError
+import sys
 
 def normalize_url(url: str) -> str:
     if url == "" or url == None:
@@ -64,3 +67,23 @@ def extract_page_data(html: str, page_url: str) -> dict[str: str]:
     page_data["outgoing_links"] = get_urls_from_html(html, page_url)
     page_data["image_urls"] = get_images_from_html(html, page_url)
     return page_data
+
+def get_html(url: str) -> str:
+    try:
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0"}
+        session = requests.session()
+        session.get(url)
+        response = session.get(url, headers=headers)
+    except ConnectionError as ce:
+        print(f"Connection error experienced when attempted to access '{url}'. Please try again. {ce}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Unknown exception occured while attempting to access '{url}'. {e}")
+        sys.exit(1)
+    print(f"Status Code: {response.status_code}")
+    
+    if response.status_code >= 400:
+        raise StatusError(f"Error response code of {response.status_code} was returned. Please try again.")
+    if not response.headers.get('content-type').startswith('text/html'):
+        raise HeaderError(f"Excpected response content-type header to contain 'text/html', instead it contains '{response.headers.get('content-type')}'.")
+    return response.text
