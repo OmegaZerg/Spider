@@ -1,5 +1,5 @@
 import sys
-from crawl import get_html, crawl_page
+from crawl import crawl_page
 
 def main():
     print("Hello from spider!")

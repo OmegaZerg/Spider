@@ -1,7 +1,7 @@
 from urllib.parse import urlparse, urljoin
 from bs4 import BeautifulSoup
 import requests
-from classes import StatusError, HeaderError
+from classes import StatusError
 import sys
 
 def normalize_url(url: str) -> str:
