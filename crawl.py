@@ -1,4 +1,4 @@
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 from bs4 import BeautifulSoup
 import requests
 from classes import StatusError, HeaderError
@@ -41,7 +41,7 @@ def get_urls_from_html(html: str, base_url: str) -> list[str]:
         if link.get('href').startswith("https://"):
             links.append(link.get('href'))
         else:
-            links.append(base_url + link.get('href'))
+            links.append(urljoin(base_url, link.get('href')))
     return links
 
 def get_images_from_html(html: str, base_url: str) -> list[str]:
@@ -85,5 +85,28 @@ def get_html(url: str) -> str:
     if response.status_code >= 400:
         raise StatusError(f"Error response code of {response.status_code} was returned. Please try again.")
     if not response.headers.get('content-type').startswith('text/html'):
-        raise HeaderError(f"Excpected response content-type header to contain 'text/html', instead it contains '{response.headers.get('content-type')}'.")
+        print(f"Excpected response content-type header to contain 'text/html', instead it contains '{response.headers.get('content-type')}'. This page will NOT be processed!")
+        return '<html></html>'
+        #raise HeaderError(f"Excpected response content-type header to contain 'text/html', instead it contains '{response.headers.get('content-type')}'.")
     return response.text
+
+def crawl_page(base_url: str, current_url=None, page_data=None):
+    if base_url == "" or base_url == None:
+        raise ValueError("The crawl page function must not be called with an empty string for the base url parameter!")
+    if current_url is None:
+        current_url = base_url
+    if urlparse(base_url.lower()).hostname != urlparse(current_url.lower()).hostname:
+        return
+    if page_data is None:
+        page_data = {}
+    current_normalized = normalize_url(current_url)
+    if current_normalized in page_data:
+        return page_data
+    current_html = get_html(current_url)
+    current_data = extract_page_data(current_html, current_url)
+    page_data[current_normalized] = current_data
+    page_urls = get_urls_from_html(current_html, base_url)
+    for url in page_urls:
+        crawl_page(base_url, url, page_data)
+    
+    return page_data

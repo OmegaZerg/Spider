@@ -1,5 +1,5 @@
 import sys
-from crawl import get_html
+from crawl import get_html, crawl_page
 
 def main():
     print("Hello from spider!")
@@ -14,7 +14,13 @@ def main():
         sys.exit(1)
     print(f"Starting crawl of: {sys.argv[1]}")
 
-    print(get_html(sys.argv[1]))
+    page_data = crawl_page(sys.argv[1])
+    print(f"Pages Found: {len(page_data)}")
+    print(f"Spider Report for the url '{sys.argv[1]}':")
+    for url, data in page_data.items():
+        print(f"{url}:")
+        print(data)
+
 
 if __name__ == "__main__":
     main()
