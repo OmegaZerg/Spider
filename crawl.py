@@ -1,7 +1,9 @@
 from urllib.parse import urlparse, urljoin
 from bs4 import BeautifulSoup
 import requests
-from classes import StatusError
+import aiohttp
+import asyncio
+from classes import StatusError, AsyncCrawler
 import sys
 
 def normalize_url(url: str) -> str:
@@ -90,7 +92,8 @@ def get_html(url: str) -> str:
         #raise HeaderError(f"Excpected response content-type header to contain 'text/html', instead it contains '{response.headers.get('content-type')}'.")
     return response.text
 
-def crawl_page(base_url: str, current_url=None, page_data=None):
+#Non-Async page crawler
+def crawl_page(base_url: str, current_url=None, page_data=None) -> dict[str: str]:
     if base_url == "" or base_url == None:
         raise ValueError("The crawl page function must not be called with an empty string for the base url parameter!")
     if current_url is None:
@@ -108,5 +111,9 @@ def crawl_page(base_url: str, current_url=None, page_data=None):
     page_urls = get_urls_from_html(current_html, base_url)
     for url in page_urls:
         crawl_page(base_url, url, page_data)
-    
     return page_data
+
+async def crawl_site_async(base_url: str, base_domain: str, max_concurrency: int, page_data={}, lock=asyncio.Lock(), semaphore=asyncio.Semaphore, session=aiohttp.ClientSession()):
+    crawler = AsyncCrawler()
+    async with crawler:
+        pass

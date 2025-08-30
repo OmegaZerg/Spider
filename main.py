@@ -1,5 +1,5 @@
 import sys
-from crawl import crawl_page
+from crawl import crawl_page, crawl_site_async
 
 def main():
     print("Hello from spider!")

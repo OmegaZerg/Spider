@@ -48,24 +48,27 @@ class AsyncCrawler():
             print(f"Unknown exception occured while attempting to access '{url}'. {e}")
             sys.exit(1)
 
-    #TODO: Left off here
-    async def crawl_page(base_url: str, current_url=None, page_data=None):
+    async def crawl_page(self, base_url: str, current_url=None, page_data=None) -> None:
         if base_url == "" or base_url == None:
-            raise ValueError("The crawl page function must not be called with an empty string for the base url parameter!")
+            raise ValueError("The crawl page method must not be called with an empty string for the base url parameter!")
         if current_url is None:
             current_url = base_url
         if urlparse(base_url.lower()).hostname != urlparse(current_url.lower()).hostname:
             return
-        if page_data is None:
-            page_data = {}
         current_normalized = normalize_url(current_url)
-        if current_normalized in page_data:
+        if await self.add_page_visit(current_normalized):
             return page_data
-        current_html = get_html(current_url)
-        current_data = extract_page_data(current_html, current_url)
-        page_data[current_normalized] = current_data
-        page_urls = get_urls_from_html(current_html, base_url)
-        for url in page_urls:
-            crawl_page(base_url, url, page_data)
-        
-        return page_data
+        async with self.semaphore(self.max_concurrency):
+            current_html = get_html(current_url)
+            current_data = extract_page_data(current_html, current_url)
+            self.page_data[current_normalized] = current_data
+            page_urls = get_urls_from_html(current_html, base_url)
+            background_tasks = set()
+            for url in page_urls:
+                task = asyncio.create_task(self.crawl_page(base_url, url, page_data))
+                background_tasks.add(task)
+            await asyncio.gather(background_tasks)
+    
+    async def crawl(self, base_url: str) -> dict[str: str]:
+        self.crawl_page(base_url)
+        return self.page_data
