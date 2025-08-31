@@ -25,9 +25,11 @@ async def main():
 
     #Async Crawler:
     page_data = await crawl_site_async(sys.argv[1])
-    for page in page_data.values():
-        print(f"Found {len(page['outgoing_links'])} outgoing links on {page['url']}")
-        print(f"Links: {page}")
+    for url, data in page_data.items():
+        # print(f"Found {len(page['outgoing_links'])} outgoing links on {page['url']}")
+        # print(f"Links: {page}")
+        print(f"{url}:")
+        print(data)
 
 
 if __name__ == "__main__":

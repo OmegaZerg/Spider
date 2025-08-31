@@ -29,6 +29,7 @@ class AsyncCrawler():
             if normalized_url in self.page_data:
                 return False
             else:
+                self.page_data[normalized_url] = None
                 return True
         
     async def get_html(self, url: str) -> Union[str, None]:
