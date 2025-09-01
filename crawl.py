@@ -34,8 +34,10 @@ class AsyncCrawler():
         
     async def get_html(self, url: str) -> Union[str, None]:
         try:
-            async with self.session.get(url) as resp:
-                assert resp.status == 200
+            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0"}
+            async with self.session.get(url, headers=headers) as resp:
+                if resp.status >= 400:
+                    print(f"Error response code of {resp.status_code} was returned for URL {url}. Please try again.")
                 content_type = resp.headers.get('content-type', '')
                 if 'text/html' not in content_type:
                     print(f"Excpected response content-type header to contain 'text/html' for url {url}, instead it contains '{content_type}'. This page will NOT be processed!")
@@ -92,13 +94,12 @@ def get_h1_from_html(html: str) -> str:
 
 def get_first_paragraph_from_html(html: str) -> str:
     soup = BeautifulSoup(html, 'html.parser')
-    paragraphs = soup.find_all('p')
-    if len(paragraphs) < 1:
-        return ""
     main_html = soup.find("main")
-    if main_html is None:
-        return paragraphs[0].get_text()
-    return main_html.p.get_text(strip=True) if main_html.p.get_text() !="" else paragraphs[0].get_text()
+    if main_html:
+        first_paragraph = main_html.find("p")
+    else:
+        first_paragraph = soup.find("p")
+    return first_paragraph.get_text(strip=True) if first_paragraph else ""
 
 def get_urls_from_html(html: str, base_url: str) -> list[str]:
     soup = BeautifulSoup(html, 'html.parser')
