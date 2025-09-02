@@ -21,15 +21,15 @@ def write_csv_report(page_data: dict[str: str], filename="report.csv"):
             else:
                 #print(f"Page not processed: {key} {page}")
                 not_crawled.append(key)
-    
-    unprocessed_report, extension = filename.split(".")
-    unprocessed_report += "_unprocessed" + "." + extension
-    with open(unprocessed_report, mode="w", newline="", encoding="utf-8") as csvfile:
-        headers = ["page_url"]
-        writer = csv.DictWriter(csvfile, fieldnames=headers)
-        writer.writeheader()
-        for url in not_crawled:
-            try:
-                writer.writerow({"page_url": url})
-            except Exception as e:
-                print(f"Unknown error! {e}")
+    if len(not_crawled) > 0:
+        unprocessed_report, extension = filename.split(".")
+        unprocessed_report += "_unprocessed" + "." + extension
+        with open(unprocessed_report, mode="w", newline="", encoding="utf-8") as csvfile:
+            headers = ["page_url"]
+            writer = csv.DictWriter(csvfile, fieldnames=headers)
+            writer.writeheader()
+            for url in not_crawled:
+                try:
+                    writer.writerow({"page_url": url})
+                except Exception as e:
+                    print(f"Unknown error! {e}")
