@@ -2,10 +2,6 @@ from urllib.parse import urlparse, urljoin
 from bs4 import BeautifulSoup
 import aiohttp
 import asyncio
-from typing import Union
-#Non-Async version dependancies:
-# import requests
-# import sys
 
 class AsyncCrawler():
     def __init__(self, base_url: str, max_concurrency: int, max_pages: int):
@@ -35,7 +31,7 @@ class AsyncCrawler():
                 return False
             return True
         
-    async def get_html(self, url: str) -> Union[str, None]:
+    async def get_html(self, url: str) -> str | None:
         try:
             headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0"}
             async with self.session.get(url, headers=headers) as resp:
@@ -64,14 +60,13 @@ class AsyncCrawler():
         is_new = await self.add_page_visit(current_normalized)
         if not is_new:
             return
+        self.page_data[current_normalized] = None
         async with self.semaphore:
             print(f"Crawling {current_url} \nActive: {self.max_concurrency - self.semaphore._value}")
             current_html = await self.get_html(current_url)
             if current_html is None:
                 return
-            self.page_data[current_normalized] = None
             current_data = extract_page_data(current_html, current_url)
-            print(f"Current data: {current_data}")
             async with self.lock:
                 self.page_data[current_normalized] = current_data
             filtered_page_data = [v for v in self.page_data.values() if v is not None]
@@ -159,50 +154,6 @@ def extract_page_data(html: str, page_url: str) -> dict[str: str]:
     page_data["image_urls"] = get_images_from_html(html, page_url)
     return page_data
 
-#Non-Async page crawler
-# def get_html(url: str) -> str:
-#     try:
-#         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0"}
-#         session = requests.session()
-#         session.get(url)
-#         response = session.get(url, headers=headers)
-#     except ConnectionError as ce:
-#         print(f"Connection error experienced when attempted to access '{url}'. Please try again. {ce}")
-#         sys.exit(1)
-#     except Exception as e:
-#         print(f"Unknown exception occured while attempting to access '{url}'. {e}")
-#         sys.exit(1)
-#     print(f"Status Code: {response.status_code}")
-    
-#     if response.status_code >= 400:
-#         raise StatusError(f"Error response code of {response.status_code} was returned. Please try again.")
-#     if not response.headers.get('content-type').startswith('text/html'):
-#         print(f"Excpected response content-type header to contain 'text/html', instead it contains '{response.headers.get('content-type')}'. This page will NOT be processed!")
-#         return '<html></html>'
-#         #raise HeaderError(f"Excpected response content-type header to contain 'text/html', instead it contains '{response.headers.get('content-type')}'.")
-#     return response.text
-
-#Non-Async page crawler
-# def crawl_page(base_url: str, current_url=None, page_data=None) -> dict[str: str]:
-#     if base_url == "" or base_url == None:
-#         raise ValueError("The crawl page function must not be called with an empty string for the base url parameter!")
-#     if current_url is None:
-#         current_url = base_url
-#     if urlparse(base_url.lower()).hostname != urlparse(current_url.lower()).hostname:
-#         return
-#     if page_data is None:
-#         page_data = {}
-#     current_normalized = normalize_url(current_url)
-#     if current_normalized in page_data:
-#         return page_data
-#     current_html = get_html(current_url)
-#     current_data = extract_page_data(current_html, current_url)
-#     page_data[current_normalized] = current_data
-#     page_urls = get_urls_from_html(current_html, base_url)
-#     for url in page_urls:
-#         crawl_page(base_url, url, page_data)
-#     return page_data
-
-async def crawl_site_async(base_url: str, max_concurrency: int, max_pages: int):
+async def crawl_site_async(base_url: str, max_concurrency: int, max_pages: int) -> dict[str: str]:
     async with AsyncCrawler(base_url, max_concurrency, max_pages) as crawler:
         return await crawler.crawl()
