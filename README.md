@@ -23,6 +23,16 @@
 ## This is a webscraper built using python
 Crawl sites and scrap for specific data to report on.
 
+## Instructions
+Run the main.py file with 3 arguments:
+1. The URL you wish to crawl
+2. The maximum number of concurrent pages to process
+3. The maximum total number of web pages/urls to crawl
+
+
+Template: ```python 3 main.py <URL> <max concurrent> <max total>```
+Example: ```python 3 main.py https://wikipedia.org 5 40```
+
 ###### Project Dependancies:
 1. aiohttp
 2. asyncio
