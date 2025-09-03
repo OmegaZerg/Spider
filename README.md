@@ -31,6 +31,7 @@ Run the main.py file with 3 arguments:
 
 
 Template: ```python 3 main.py <URL> <max concurrent> <max total>```
+
 Example: ```python 3 main.py https://wikipedia.org 5 40```
 
 ###### Project Dependancies:
